@@ -207,14 +207,13 @@ def retrieve_sor(run_number):
 
     return int(SOR)
 
-CONFKEY=''
-if args.confKey!= '':
-  CONFKEY=' --configKeyValues "' + args.confKey + '"'
-
 # Recover mean vertex settings from external txt file
+CONF=''
+if args.confKey!= '':
+   CONF=args.confkey
 
 if  len(args.meanVertexPerRunTxtFile) > 0:
-  if "Diamond" in CONFKEY:
+  if "Diamond" in args.confKey:
      print("confKey already sets diamond, stop!")
      sys.exit()
   #df = pd.read_csv(args.vertexPerRunFile, sep=" ", header=None) # for single space
@@ -229,8 +228,8 @@ if  len(args.meanVertexPerRunTxtFile) > 0:
   MV_VZ = float(df.loc[df['runNumber'].eq(args.run), 'vz'])
   print("** Using mean vertex parameters from file",args.meanVertexPerRunTxtFile,"for run =",args.run,
   ": \n \t vx =",MV_VX,", vy =",MV_VY,", vz =",MV_VZ,",\n \t sx =",MV_SX,", sy =",MV_SY,", sz =",MV_SZ)
-  CONFKEY = CONFKEY + ' "Diamond.width[2]='+str(MV_SZ)+';Diamond.width[1]='+str(MV_SY)+';Diamond.width[0]='+str(MV_SX)+';Diamond.position[2]='+str(MV_VZ)+';Diamond.position[1]='+str(MV_VY)+';Diamond.position[0]='+str(MV_VX)+'"'
-  print("** New confKey:",CONFKEY)
+  CONF = CONF + ' Diamond.width[2]='+str(MV_SZ)+';Diamond.width[1]='+str(MV_SY)+';Diamond.width[0]='+str(MV_SX)+';Diamond.position[2]='+str(MV_VZ)+';Diamond.position[1]='+str(MV_VY)+';Diamond.position[0]='+str(MV_VX)+''
+  print("** New confKey:",CONF)
 
 # ----------- START WORKFLOW CONSTRUCTION -----------------------------
 
@@ -448,6 +447,11 @@ for tf in range(1, NTIMEFRAMES + 1):
    INIFILE=''
    if args.ini!= '':
       INIFILE=' --configFile ' + args.ini
+
+   CONFKEY=''
+   if CONF!= '':
+      CONFKEY=' --configKeyValues "' + CONF + '"'
+
    PROCESS=args.proc
    TRIGGER=''
    if args.trigger != '':
@@ -514,7 +518,7 @@ for tf in range(1, NTIMEFRAMES + 1):
          SGN_CONFIG_task['cmd'] = SGN_CONFIG_task['cmd'] + ' --weightPow=' + str(WEIGHTPOW)
       # if we configure pythia8 here --> we also need to adjust the configuration
       # TODO: we need a proper config container/manager so as to combine these local configs with external configs etc.
-      CONFKEY='--configKeyValues "GeneratorPythia8.config=pythia8.cfg'+';'+args.confKey+'"'
+      CONFKEY='--configKeyValues "GeneratorPythia8.config=pythia8.cfg'+';'+CONF+'"'
 
    # elif GENERATOR == 'extgen': what do we do if generator is not pythia8?
        # NOTE: Generator setup might be handled in a different file or different files (one per
